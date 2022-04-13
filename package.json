@@ -1,0 +1,24 @@
+{
+  "name": "ws-wrapper",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "dependencies": {
+    "ws": "^8.5.0",
+    "events": "^3.3.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/janhaa/ws-wrapper.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/janhaa/ws-wrapper/issues"
+  },
+  "homepage": "https://github.com/janhaa/ws-wrapper#readme"
+}
