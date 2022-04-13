@@ -15,19 +15,19 @@ class WebSocketWrapper extends EventEmitter {
       this.connection = new WebSocket(this.url);
     }
 
-    this.connection.onopen = function () { };
+    this.connection.onopen = () => { };
 
-    this.connection.onmessage = function (event) {
+    this.connection.onmessage = (event) => {
       this.emit('message', event.data);
     };
 
-    this.connection.onclose = function () {
-      this.connection = undefined;
+    this.connection.onclose = () => {
+      this.connection = null;
       setTimeout(() => this.connect(), 1000);
     };
 
-    this.connection.onerror = function () {
-      this.connection = undefined;
+    this.connection.onerror = () => {
+      this.connection = null;
       setTimeout(() => this.connect(), 1000);
     };
   }
@@ -35,7 +35,7 @@ class WebSocketWrapper extends EventEmitter {
   close() {
     if (this.connection != null || this.connection != undefined) {
       this.connection.close();
-      this.connection = undefined;
+      this.connection = null;
     }
   }
 }
