@@ -10,7 +10,6 @@
     "events": "^3.3.0",
     "ws": "^8.5.0"
   },
-  "devDependencies": {},
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsc",
