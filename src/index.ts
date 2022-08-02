@@ -3,7 +3,8 @@ import EventEmitter from "events";
 
 class WebSocketWrapper extends EventEmitter {
   url: string;
-  connection: WebSocket | null = null;
+  #connection: WebSocket | null = null;
+  #explicitClose: boolean = false;
 
   #allEvents: Array<string> = [
     "close",
@@ -22,22 +23,25 @@ class WebSocketWrapper extends EventEmitter {
   }
 
   isConnected(connection: WebSocket | null): connection is WebSocket {
-    if (!this.connection) return false;
-    return this.connection.readyState === WebSocket.OPEN;
+    if (!this.#connection) return false;
+    return this.#connection.readyState === WebSocket.OPEN;
   }
 
   send(data: any) {
-    if (!this.isConnected(this.connection)) throw new Error("not connected");
-    this.connection.send(data);
+    if (!this.isConnected(this.#connection)) throw new Error("not connected");
+    this.#connection.send(data);
   }
 
   connect() {
-    if (this.connection === null) {
-      this.connection = new WebSocket(this.url);
+    this.#explicitClose = false;
+
+    if (this.#connection === null) {
+      this.#connection = new WebSocket(this.url);
     }
 
     const initiateReconnect = () => {
-      this.connection = null;
+      if(this.#explicitClose) return;
+      this.#connection = null;
       setTimeout(() => this.connect(), 1000);
     };
 
@@ -47,7 +51,7 @@ class WebSocketWrapper extends EventEmitter {
 
     // catch all specified events, optionally intercept and forward
     this.#allEvents.forEach((event) => {
-      (this.connection as WebSocket).on(event, (...args) => {
+      (this.#connection as WebSocket).on(event, (...args) => {
         // intercept event
         if (event in interceptors) interceptors[event]();
 
@@ -58,9 +62,10 @@ class WebSocketWrapper extends EventEmitter {
   }
 
   close() {
-    if (this.connection != null || this.connection != undefined) {
-      this.connection.close();
-      this.connection = null;
+    if (this.#connection != null || this.#connection != undefined) {
+      this.#explicitClose = true;
+      this.#connection.close();
+      this.#connection = null;
     }
   }
 }
