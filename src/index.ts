@@ -47,6 +47,7 @@ class WebSocketWrapper extends EventEmitter {
 
     const interceptors: { [key: string]: Function } = {
       close: initiateReconnect,
+      error: initiateReconnect
     };
 
     // catch all specified events, optionally intercept and forward
