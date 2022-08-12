@@ -53,6 +53,7 @@ class WebSocketWrapper extends EventEmitter {
     // catch all specified events, optionally intercept and forward
     this.#allEvents.forEach((event) => {
       (this.#connection as WebSocket).on(event, (...args) => {
+        console.log(event);
         // intercept event
         if (event in interceptors) interceptors[event]();
 
