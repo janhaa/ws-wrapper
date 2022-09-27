@@ -6,6 +6,8 @@ More usages to come.
 
 ```typescript
 const client = new WebSocketWrapper(remoteUrl)
+// will block until connected
+await client.connect();
 client.on('open', () => { /* ... */ });
 client.on('close', () => { /* ... */ });
 client.on('message', msg => console.log('server says:', msg.toString()));
