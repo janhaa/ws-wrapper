@@ -1,6 +1,8 @@
 # ws-wrapper
 
+Work-in-progress Typescript wrapper around ws package, implementing auto-reconnect and simpliying high-level usage.
 
+More usages to come.
 
 ```typescript
 const client = new WebSocketWrapper(remoteUrl)
