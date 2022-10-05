@@ -29,6 +29,29 @@ class WebSocketWrapper extends EventEmitter {
     this.#connectionTries = 0;
     this.#connecting = false;
     this.#flushQueue();
+    // catch all specified events, optionally intercept and forward
+    this.#allEvents.forEach((event) => {
+      (this.#connection as WebSocket).on(event, async (...args: any[]) => {
+        // console.log(event, args);
+        // // intercept event
+        // if (event in interceptors) {
+        //   try {
+        //     interceptors[event]();
+        //   } catch (err) {
+        //     reject(err);
+        //   }
+        //   // don't forward if we are still connecting
+        //   if (this.#connecting)
+        //     return;
+        // }
+
+        // if (event === 'open')
+        //   resolve(null);
+
+        // forward event
+        this.emit(event, ...args);
+      });
+    });
   }
 
   constructor(url: string) {
@@ -40,10 +63,10 @@ class WebSocketWrapper extends EventEmitter {
     if (!this.#connection) return false;
     return this.#connection.readyState === WebSocket.OPEN;
   }
-  
+
   #flushQueue() {
     console.log(`flushing queue with ${this.#sendQueue.length} items.`);
-    while(this.#sendQueue.length > 0)
+    while (this.#sendQueue.length > 0)
       this.send(this.#sendQueue.shift())
   }
 
@@ -84,14 +107,6 @@ class WebSocketWrapper extends EventEmitter {
       setTimeout(() => this.#internalConnect(), 1000);
     };
 
-    const interceptors: { [key: string]: Function } = {
-      close: initiateReconnect,
-      error: initiateReconnect,
-      open: () => {
-        if (this.#onConnectionEstablished !== null) this.#onConnectionEstablished();
-      }
-    };
-
     const handlers: { event: string, fn: any }[] = [];
     const removeHandlers = () => {
       handlers.forEach((handler) => this.#connection?.off(handler.event, handler.fn));
@@ -118,30 +133,6 @@ class WebSocketWrapper extends EventEmitter {
         resolve(null);
       }
       this.#onConnectionFailed = reject;
-      // catch all specified events, optionally intercept and forward
-      // this.#allEvents.forEach((event) => {
-      //   (this.#connection as WebSocket).on(event, async (...args: any[]) => {
-      //     console.log(event, args);
-      //     // // intercept event
-      //     // if (event in interceptors)
-      //     // {
-      //     //   try {
-      //     //     interceptors[event]();
-      //     //   } catch(err) {
-      //     //     reject(err);
-      //     //   }
-      //     //   // don't forward if we are still connecting
-      //     //   if(this.#connecting)
-      //     //     return;
-      //     // }
-
-      //     // if(event === 'open')
-      //     //   resolve(null);
-
-      //     // // forward event
-      //     // this.emit(event, ...args);
-      //   });
-      // });
     });
   }
 
