@@ -10,6 +10,7 @@ class WebSocketWrapper extends EventEmitter {
   #connectionTriesMax: number = Infinity;
   #onConnectionEstablished: Function | null = null;
   #onConnectionFailed: Function | null = null;
+  #sendQueue: any[] = [];
 
   #allEvents: Array<string> = [
     "close",
@@ -23,9 +24,11 @@ class WebSocketWrapper extends EventEmitter {
   ];
 
   #connectionEstablished() {
+    console.log("connection established")
     this.#onConnectionEstablished = null;
     this.#connectionTries = 0;
     this.#connecting = false;
+    this.#flushQueue();
   }
 
   constructor(url: string) {
@@ -37,10 +40,19 @@ class WebSocketWrapper extends EventEmitter {
     if (!this.#connection) return false;
     return this.#connection.readyState === WebSocket.OPEN;
   }
+  
+  #flushQueue() {
+    console.log(`flushing queue with ${this.#sendQueue.length} items.`);
+    while(this.#sendQueue.length > 0)
+      this.send(this.#sendQueue.shift())
+  }
 
   send(data: any) {
-    if (!this.isConnected()) throw new Error("not connected");
-    this.#connection?.send(data);
+    // if (!this.isConnected()) throw new Error("not connected");
+    if (!this.isConnected()) {
+      this.#sendQueue.push(data);
+    } else
+      this.#connection?.send(data);
   }
 
   async connect() {
@@ -57,7 +69,7 @@ class WebSocketWrapper extends EventEmitter {
     if (this.#connectionTries > this.#connectionTriesMax) {
       if (this.#onConnectionFailed)
         return this.#onConnectionFailed('max retries exceeded');
-        // throw new Error('max retries exceeded');
+      // throw new Error('max retries exceeded');
       else
         console.log("no connection failed handler");
     }
@@ -92,7 +104,6 @@ class WebSocketWrapper extends EventEmitter {
       // empty handler to not have unhandled error
     });
     this.#connection.once('close', (err) => {
-      console.log("trigger close")
       // if (this.#onConnectionFailed) this.#onConnectionFailed('connection error');
       setTimeout(initiateReconnect, 0);
     });
