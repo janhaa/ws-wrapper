@@ -29,29 +29,6 @@ class WebSocketWrapper extends EventEmitter {
     this.#connectionTries = 0;
     this.#connecting = false;
     this.#flushQueue();
-    // catch all specified events, optionally intercept and forward
-    this.#allEvents.forEach((event) => {
-      (this.#connection as WebSocket).on(event, async (...args: any[]) => {
-        // console.log(event, args);
-        // // intercept event
-        // if (event in interceptors) {
-        //   try {
-        //     interceptors[event]();
-        //   } catch (err) {
-        //     reject(err);
-        //   }
-        //   // don't forward if we are still connecting
-        //   if (this.#connecting)
-        //     return;
-        // }
-
-        // if (event === 'open')
-        //   resolve(null);
-
-        // forward event
-        this.emit(event, ...args);
-      });
-    });
   }
 
   constructor(url: string) {
@@ -100,6 +77,13 @@ class WebSocketWrapper extends EventEmitter {
     if (this.#connection === null) {
       this.#connection = new WebSocket(this.url);
     }
+
+    // catch all specified events, optionally intercept and forward
+    this.#allEvents.forEach((event) => {
+      (this.#connection as WebSocket).on(event, async (...args: any[]) => {
+        this.emit(event, ...args);
+      });
+    });
 
     const initiateReconnect = () => {
       if (this.#explicitClose) return;
