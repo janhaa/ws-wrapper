@@ -1,6 +1,10 @@
 import WebSocket from "ws";
 import EventEmitter from "events";
 
+function timeout(ms: number) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 class WebSocketWrapper extends EventEmitter {
   url: string;
   #connection: WebSocket | null = null;
@@ -41,10 +45,13 @@ class WebSocketWrapper extends EventEmitter {
     return this.#connection.readyState === WebSocket.OPEN;
   }
 
-  #flushQueue() {
+  async #flushQueue() {
     console.log(`flushing queue with ${this.#sendQueue.length} items.`);
     while (this.#sendQueue.length > 0)
+    {
+      await timeout(100);
       this.send(this.#sendQueue.shift())
+  }
   }
 
   send(data: any) {
