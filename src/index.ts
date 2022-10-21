@@ -15,6 +15,7 @@ class WebSocketWrapper extends EventEmitter {
   #onConnectionEstablished: Function | null = null;
   #onConnectionFailed: Function | null = null;
   #sendQueue: any[] = [];
+  #sendQueueEnabled: boolean = false;
 
   #allEvents: Array<string> = [
     "close",
@@ -51,13 +52,14 @@ class WebSocketWrapper extends EventEmitter {
     {
       await timeout(100);
       this.send(this.#sendQueue.shift())
-  }
+    }
   }
 
   send(data: any) {
     // if (!this.isConnected()) throw new Error("not connected");
     if (!this.isConnected()) {
-      this.#sendQueue.push(data);
+      if(this.#sendQueueEnabled)
+        this.#sendQueue.push(data);
     } else
       this.#connection?.send(data);
   }
@@ -88,6 +90,19 @@ class WebSocketWrapper extends EventEmitter {
     // catch all specified events, optionally intercept and forward
     this.#allEvents.forEach((event) => {
       (this.#connection as WebSocket).on(event, async (...args: any[]) => {
+        if(event === "message")
+        {
+          if(args[0].toString().startsWith("___disableSendQueue"))
+          {
+            console.log("send queue disabled by remote.")
+            return this.#sendQueueEnabled = false;
+          }
+          if(args[0].toString().startsWith("___enableSendQueue"))
+          {
+            console.log("send queue enabled by remote.")
+            return this.#sendQueueEnabled = true;
+          }
+        }
         this.emit(event, ...args);
       });
     });
